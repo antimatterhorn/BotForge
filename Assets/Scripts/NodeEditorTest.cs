@@ -1,17 +1,32 @@
 using UnityEngine;
 using RuntimeNodeEditor;
+using UnityEngine.EventSystems;
 
-public class NodeEditorTest : MonoBehaviour
+public class NodeEditorTest : NodeEditor
 {
-    public RectTransform holderPanel;
-    public GameObject contextMenuPrefab;
-
-    void Start()
+    public override void StartEditor(NodeGraph graph)
     {
-        var editor = gameObject.AddComponent<NodeEditor>();
-        editor.contextMenuPrefab = contextMenuPrefab;
+        base.StartEditor(graph);
 
-        var graph = editor.CreateGraph<NodeGraph>(holderPanel, Color.gray, Color.yellow);
-        editor.StartEditor(graph);
+        // use fluent builder create a context
+        var ctx = new ContextMenuBuilder()
+            .Add("nodes/float", () => Graph.Create("Nodes/FloatNode"))
+            .Add("nodes/operation", () => Graph.Create("Nodes/MathOperationNode"))
+            .Build();
+        // set the context
+        SetContextMenu(ctx);
+        // listen for graph events
+        Events.OnGraphPointerClickEvent += OnClick;
+    }
+    private void OnClick(PointerEventData eventData)
+    {
+        if (eventData.button == PointerEventData.InputButton.Left)
+        {
+            CloseContextMenu();
+        }
+        if (eventData.button == PointerEventData.InputButton.Right)
+        {
+            DisplayContextMenu();
+        }
     }
 }
